@@ -1,5 +1,9 @@
 use core::fmt;
-use std::{fmt::Write, mem::size_of};
+use std::fmt::Write;
+
+use crate::lan_parser::parse_lan_string_to_coords;
+
+mod lan_parser;
 
 pub const STARTING_BOARD_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 pub const OTHER_TEST_FEN: &str = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
@@ -18,6 +22,8 @@ fn main() {
         &mut board2,
     );
     println!("{}", board2);
+    println!("\n");
+    dbg!(parse_lan_string_to_coords("e2e4"));
 }
 
 const VALID_PIECE_CHARS: [char; 6] = ['p', 'n', 'b', 'k', 'q', 'r'];
