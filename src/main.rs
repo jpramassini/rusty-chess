@@ -1,8 +1,10 @@
 use core::fmt;
+use std::{fmt::Write, mem::size_of};
 
 pub const STARTING_BOARD_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 pub const OTHER_TEST_FEN: &str = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
-pub const OTHER_OTHER_TEST_FEN: &str = "r1b1k1nr/p2p1pNp/n2B4/1p1NP2P/6P1/3P1Q2/P1P1K3/q5b1 w KQkq - 0 10";
+pub const OTHER_OTHER_TEST_FEN: &str =
+    "r1b1k1nr/p2p1pNp/n2B4/1p1NP2P/6P1/3P1Q2/P1P1K3/q5b1 w KQkq - 0 10";
 
 fn main() {
     let mut board: Board = Board {
@@ -12,6 +14,11 @@ fn main() {
         "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2",
         &mut board,
     );
+    dbg!(size_of::<PieceType>());
+    dbg!(size_of::<PieceColor>());
+    dbg!(PieceType::King as u8);
+    dbg!(PieceType::Queen as u8);
+    println!("{}", board);
 }
 
 const VALID_PIECE_CHARS: [char; 6] = ['p', 'n', 'b', 'k', 'q', 'r'];
@@ -34,7 +41,6 @@ impl fmt::Display for PieceType {
     }
 }
 
-
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PieceColor {
     White,
@@ -47,11 +53,65 @@ impl fmt::Display for PieceColor {
     }
 }
 
-
 #[derive(Clone, Copy)]
 pub struct Piece {
     pub piece_type: PieceType,
     pub piece_color: PieceColor,
+}
+
+impl fmt::Display for Piece {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_char(self.to_unicode_char())
+    }
+}
+
+impl Piece {
+    fn to_unicode_char(&self) -> char {
+        match self.piece_type {
+            PieceType::King => {
+                if self.piece_color == PieceColor::Black {
+                    '\u{265A}'
+                } else {
+                    '\u{2654}'
+                }
+            }
+            PieceType::Queen => {
+                if self.piece_color == PieceColor::Black {
+                    '\u{265B}'
+                } else {
+                    '\u{2655}'
+                }
+            }
+            PieceType::Bishop => {
+                if self.piece_color == PieceColor::Black {
+                    '\u{265D}'
+                } else {
+                    '\u{2657}'
+                }
+            }
+            PieceType::Knight => {
+                if self.piece_color == PieceColor::Black {
+                    '\u{265E}'
+                } else {
+                    '\u{2658}'
+                }
+            }
+            PieceType::Rook => {
+                if self.piece_color == PieceColor::Black {
+                    '\u{265C}'
+                } else {
+                    '\u{2656}'
+                }
+            }
+            PieceType::Pawn => {
+                if self.piece_color == PieceColor::Black {
+                    '\u{265F}'
+                } else {
+                    '\u{2659}'
+                }
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -61,6 +121,28 @@ pub struct Space {
 
 pub struct Board {
     pub squares: [Space; 64],
+}
+
+impl fmt::Display for Board {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut board_str = String::new();
+        let mut file_counter = 1;
+        let hori_divider = "---------------------------------";
+        board_str.push_str(&format!("\n{}\n", hori_divider));
+        for space in self.squares {
+            match space.piece {
+                Some(piece) => board_str.push_str(&format!("| {} ", piece)),
+                None => board_str.push_str("|   "),
+            }
+
+            if file_counter % 8 == 0 {
+                board_str.push_str(&format!("|\n{}\n", hori_divider));
+            }
+            file_counter += 1;
+        }
+
+        f.write_str(&board_str)
+    }
 }
 
 pub fn rank_and_file_to_index(rank: u32, file: u32) -> usize {
