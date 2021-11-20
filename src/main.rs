@@ -3,22 +3,21 @@ use std::{fmt::Write, mem::size_of};
 
 pub const STARTING_BOARD_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 pub const OTHER_TEST_FEN: &str = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
-pub const OTHER_OTHER_TEST_FEN: &str =
-    "r1b1k1nr/p2p1pNp/n2B4/1p1NP2P/6P1/3P1Q2/P1P1K3/q5b1 w KQkq - 0 10";
 
 fn main() {
     let mut board: Board = Board {
         squares: [Space { piece: None }; 64],
     };
+    let mut board2: Board = Board {
+        squares: [Space { piece: None }; 64],
+    };
+    parse_fen_string_to_board(STARTING_BOARD_FEN, &mut board);
+    println!("{}", board);
     parse_fen_string_to_board(
         "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2",
-        &mut board,
+        &mut board2,
     );
-    dbg!(size_of::<PieceType>());
-    dbg!(size_of::<PieceColor>());
-    dbg!(PieceType::King as u8);
-    dbg!(PieceType::Queen as u8);
-    println!("{}", board);
+    println!("{}", board2);
 }
 
 const VALID_PIECE_CHARS: [char; 6] = ['p', 'n', 'b', 'k', 'q', 'r'];
@@ -127,9 +126,15 @@ impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut board_str = String::new();
         let mut file_counter = 1;
-        let hori_divider = "---------------------------------";
+        let mut rank_counter = 8;
+        let hori_divider = "  ---------------------------------";
+        let bottom_letters = "    A   B   C   D   E   F   G   H";
         board_str.push_str(&format!("\n{}\n", hori_divider));
         for space in self.squares {
+            if file_counter % 8 == 1 {
+                board_str.push_str(&format!("{} ", rank_counter));
+                rank_counter -= 1;
+            }
             match space.piece {
                 Some(piece) => board_str.push_str(&format!("| {} ", piece)),
                 None => board_str.push_str("|   "),
@@ -140,6 +145,7 @@ impl fmt::Display for Board {
             }
             file_counter += 1;
         }
+        board_str.push_str(&format!("{}", bottom_letters));
 
         f.write_str(&board_str)
     }
@@ -183,7 +189,7 @@ pub fn parse_fen_string_to_board(fen_string: &str, board: &mut Board) -> () {
             if c.is_numeric() {
                 let num_to_skip = c.to_digit(10).unwrap();
                 file += num_to_skip;
-                println!("Skipping {} files.", num_to_skip);
+                // println!("Skipping {} files.", num_to_skip);
             } else {
                 if !VALID_PIECE_CHARS.contains(&c.to_ascii_lowercase()) {
                     // This code shouldn't be reached, but just in case we'll swallow the weird character and move on.
@@ -205,13 +211,13 @@ pub fn parse_fen_string_to_board(fen_string: &str, board: &mut Board) -> () {
                         _ => PieceType::Pawn,
                     };
 
-                    println!(
-                        "There is a {} {} in space {},{}",
-                        piece_color.to_string(),
-                        piece_type.to_string(),
-                        rank,
-                        file
-                    );
+                    // println!(
+                    //     "There is a {} {} in space {},{}",
+                    //     piece_color.to_string(),
+                    //     piece_type.to_string(),
+                    //     rank,
+                    //     file
+                    // );
 
                     board.squares[rank_and_file_to_index(rank, file)] = Space {
                         piece: Some(Piece {
