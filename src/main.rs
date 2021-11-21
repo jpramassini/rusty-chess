@@ -189,7 +189,7 @@ pub fn parse_fen_string_to_board(fen_string: &str, board: &mut Board) -> () {
     let mut file = 0;
     for c in board_state.chars() {
 
-        // Seperator
+        // Separator
         if c == '/' {
             file = 0;
             rank -= 1;
