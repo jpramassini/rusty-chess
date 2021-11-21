@@ -188,52 +188,64 @@ pub fn parse_fen_string_to_board(fen_string: &str, board: &mut Board) -> () {
     let mut rank = 7;
     let mut file = 0;
     for c in board_state.chars() {
+
+        // Separator
         if c == '/' {
             file = 0;
             rank -= 1;
-        } else {
-            if c.is_numeric() {
-                let num_to_skip = c.to_digit(10).unwrap();
-                file += num_to_skip;
-                // println!("Skipping {} files.", num_to_skip);
-            } else {
-                if !VALID_PIECE_CHARS.contains(&c.to_ascii_lowercase()) {
-                    // This code shouldn't be reached, but just in case we'll swallow the weird character and move on.
-                    // Space should be nothing by default, so just leave it.
-                    file += 1;
-                } else {
-                    let piece_color = if c.is_uppercase() {
-                        PieceColor::White
-                    } else {
-                        PieceColor::Black
-                    };
-                    let piece_type = match c.to_ascii_lowercase() {
-                        'p' => PieceType::Pawn,
-                        'n' => PieceType::Knight,
-                        'b' => PieceType::Bishop,
-                        'r' => PieceType::Rook,
-                        'q' => PieceType::Queen,
-                        'k' => PieceType::King,
-                        _ => PieceType::Pawn,
-                    };
-
-                    // println!(
-                    //     "There is a {} {} in space {},{}",
-                    //     piece_color.to_string(),
-                    //     piece_type.to_string(),
-                    //     rank,
-                    //     file
-                    // );
-
-                    board.squares[rank_and_file_to_index(rank, file)] = Space {
-                        piece: Some(Piece {
-                            piece_type,
-                            piece_color,
-                        }),
-                    };
-                    file += 1;
-                }
-            }
+            continue;
         }
+
+        // Numeric skips
+        if c.is_numeric() {
+            let num_to_skip = c.to_digit(10).unwrap();
+            file += num_to_skip;
+            // println!("Skipping {} files.", num_to_skip);
+            continue;
+        }
+
+        // Space -- do nothing.
+        if !VALID_PIECE_CHARS.contains(&c.to_ascii_lowercase()) {
+            // This code shouldn't be reached, but just in case we'll swallow the weird character and move on.
+            file += 1;
+            continue;
+        }
+
+        // By this point, we have a real piece.
+        // Process it and move on to the next character.
+
+        let piece_color = if c.is_uppercase() {
+            PieceColor::White
+        } else {
+            PieceColor::Black
+        };
+
+        let piece_type = match c.to_ascii_lowercase() {
+            'p' => PieceType::Pawn,
+            'n' => PieceType::Knight,
+            'b' => PieceType::Bishop,
+            'r' => PieceType::Rook,
+            'q' => PieceType::Queen,
+            'k' => PieceType::King,
+            _ => PieceType::Pawn,
+        };
+
+        // println!(
+        //     "There is a {} {} in space {},{}",
+        //     piece_color.to_string(),
+        //     piece_type.to_string(),
+        //     rank,
+        //     file
+        // );
+
+        board.squares[rank_and_file_to_index(rank, file)] = Space {
+            piece: Some(Piece {
+                piece_type,
+                piece_color,
+            }),
+        };
+
+        // GO IN TO THE NEXT AISLE
+        file += 1;
     }
 }
