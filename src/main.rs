@@ -1,7 +1,7 @@
 use core::fmt;
 use std::fmt::Write;
 
-use crate::lan_parser::parse_lan_string_to_coords;
+use crate::lan_parser::{get_lan_spaces_from_board, parse_lan_string_to_coords};
 
 mod lan_parser;
 
@@ -23,7 +23,7 @@ fn main() {
     );
     println!("{}", board2);
     println!("\n");
-    dbg!(parse_lan_string_to_coords("e2e4"));
+    dbg!(get_lan_spaces_from_board("a1a2", &board));
 }
 
 const VALID_PIECE_CHARS: [char; 6] = ['p', 'n', 'b', 'k', 'q', 'r'];
@@ -58,7 +58,7 @@ impl fmt::Display for PieceColor {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Piece {
     pub piece_type: PieceType,
     pub piece_color: PieceColor,
@@ -119,9 +119,15 @@ impl Piece {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Space {
     pub piece: Option<Piece>,
+}
+
+impl fmt::Display for Space {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.piece.unwrap().to_string())
+    }
 }
 
 pub struct Board {
@@ -157,7 +163,7 @@ impl fmt::Display for Board {
     }
 }
 
-pub fn rank_and_file_to_index(rank: u32, file: u32) -> usize {
+pub fn rank_and_file_to_index(rank: u8, file: u8) -> usize {
     (rank * 8 + file) as usize
 }
 
@@ -185,15 +191,15 @@ pub fn parse_fen_string_to_board(fen_string: &str, board: &mut Board) -> () {
     // NOTE on endianness of FEN string:
     // Ranks are big-endian, so 8 -> 1
     // Files are little-endian, so A -> H
-    let mut rank = 7;
-    let mut file = 0;
+    let mut rank: u8 = 7;
+    let mut file: u8 = 0;
     for c in board_state.chars() {
         if c == '/' {
             file = 0;
             rank -= 1;
         } else {
             if c.is_numeric() {
-                let num_to_skip = c.to_digit(10).unwrap();
+                let num_to_skip: u8 = c.to_digit(10).unwrap().try_into().unwrap();
                 file += num_to_skip;
                 // println!("Skipping {} files.", num_to_skip);
             } else {
